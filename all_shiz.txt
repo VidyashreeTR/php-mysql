@@ -1,0 +1,101 @@
+pg1
+
+vpc->sec_grp->ec2->rds
+
+link:https://github.com/gnataraj/php-mysql
+link2:https://github.com/techdogie/php-mysql
+
+user_data:
+
+#!/bin/bash
+yum update -y
+amazon-linux-extras install -y php8.0 mariadb10.5
+yum install -y httpd git
+systemctl start httpd
+systemctl enable httpd
+usermod -a -G apache ec2-user
+chown -R ec2-user:apache /var/www
+chmod 2775 /var/www
+find /var/www -type d -exec chmod 2775 {} \;
+find /var/www -type f -exec chmod 0664 {} \;
+echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
+
+cmd's:
+
+create database employees_db;
+
+show databases;
+
+use employees_db;
+
+CREATE TABLE employees (
+id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+name VARCHAR(100) NOT NULL,
+address VARCHAR(255) NOT NULL,
+salary INT(10) NOT NULL
+);
+
+show tables;
+
+exit
+
+rm /var/www/html/phpinfo.php
+
+git clone https://github.com/gnataraj-mf/phpmysql.git /var/www/html/
+
+
+
+pg2
+
+grp_policy->role->dynamo_db->s3->lamda
+
+dynamo_db:
+
+table name:employees
+key:emp_id
+
+lam_code_link: https://raw.githubusercontent.com/gnataraj/aws-lambda/main/emp-json-s3-dynamodb.py
+
+
+import boto3
+import json
+import ast
+s3_client = boto3.client('s3')
+dynamodb_client = boto3.resource('dynamodb')
+def lambda_handler(event, context):
+    # First we will fetch bucket name from event json object
+    bucket = event['Records'][0]['s3']['bucket']['name']
+    # Now we will fetch file name which is uploaded in s3 bucket from event json object
+    json_file_name = event['Records'][0]['s3']['object']['key']
+    #Lets call get_object() function which Retrieves objects from Amazon S3 as dictonary
+    json_object = s3_client.get_object(Bucket=bucket,Key=json_file_name)
+    # Lets decode the json object returned by function which will retun string
+    file_reader = json_object['Body'].read().decode("utf-8")
+    # We will now change this json string to dictonary
+    file_reader = ast.literal_eval(file_reader)
+    # As we have retrieved the dictionary we will put it in dynamodb table
+    table = dynamodb_client.Table('user')
+    table.put_item(Item=file_reader)
+    return 'success'
+
+
+
+{
+    "emp_id":"69",
+    "name":"ro",
+    "location":"tumkur"
+}
+
+
+pg3
+
+tar_grp->appli_load_bal->launch_temp->auto_scale_grp
+
+link:https://raw.githubusercontent.com/gnataraj/aws-autoscaling/main/userdata.txt
+
+#!/bin/bash
+yum update -y
+yum install -y httpd 
+systemctl start httpd
+systemctl enable httpd
+echo "<h1> Hello World from $(hostname -f) </h1>" > /var/www/html/index.html 
