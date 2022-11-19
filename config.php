@@ -1,9 +1,9 @@
 <?php
 /* Database credentials. Assuming you are running MySQL
 server with default setting (user 'root' with no password) */
-define('DB_SERVER', 'database-1.ci5r9dhgc2ko.ap-south-1.rds.amazonaws.com');
+define('DB_SERVER', 'database-1.ck6lcyxzjrxu.ap-south-1.rds.amazonaws.com');
 define('DB_USERNAME', 'admin');
-define('DB_PASSWORD', '12345678');
+define('DB_PASSWORD', 'password');
 define('DB_NAME', 'employees');
  
 /* Attempt to connect to MySQL database */
